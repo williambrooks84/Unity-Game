@@ -6,6 +6,9 @@ using UnityEngine.Events;
 
 public class Health : MonoBehaviour
 {
+    [Header("UI")]
+    public GameObject crosshairUI;
+
     [Header("Health")]
     public int maxHealth = 100;
     public int currentHealth = 100;
@@ -59,11 +62,13 @@ public class Health : MonoBehaviour
     void Die()
     {
         onDeath?.Invoke();
-        
-        // Unlock cursor so player can click Play Again
+
+        if (crosshairUI != null)
+            crosshairUI.SetActive(false);
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        
+
         gameObject.SetActive(false);
     }
 }

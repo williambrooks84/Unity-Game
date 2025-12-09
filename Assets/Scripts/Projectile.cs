@@ -43,7 +43,12 @@ public class Projectile : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         if (hasHit) return;
-        HandleHit(other, other.ClosestPoint(transform.position));
+        Vector3 hitPoint;
+        if (other is BoxCollider || other is SphereCollider || other is CapsuleCollider || (other is MeshCollider meshCol && meshCol.convex))
+            hitPoint = other.ClosestPoint(transform.position);
+        else
+            hitPoint = transform.position;
+        HandleHit(other, hitPoint);
     }
 
     void HandleHit(Collider col, Vector3 hitPoint)

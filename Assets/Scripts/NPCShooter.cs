@@ -51,4 +51,9 @@ public class NPCShooter : MonoBehaviour
             if (rb != null) rb.linearVelocity = dir * projectileSpeed;
         }
     }
+
+    public void SetPlayer(Transform playerTransform)
+    {
+        player = playerTransform;
+    }
 }

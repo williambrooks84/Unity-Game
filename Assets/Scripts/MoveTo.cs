@@ -15,6 +15,11 @@ public class MoveTo : MonoBehaviour
     int currentIndex = 0;
     bool chasingPlayer = false;
 
+    public bool randomMovementEnabled = false;
+    public float randomMoveRadius = 10f;
+    private Vector3 randomDestination;
+    private float randomArriveThreshold = 1f;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -29,26 +34,46 @@ public class MoveTo : MonoBehaviour
 
     void Update()
     {
-        if (player != null && Vector3.Distance(transform.position, player.position) < detectRadius)
+        if (randomMovementEnabled)
         {
-            chasingPlayer = true;
-        }
-        else
-        {
-            chasingPlayer = false;
-        }
-
-        if (chasingPlayer && player != null)
-        {
-            agent.destination = player.position;
-        }
-        else
-        {
-            if (goals == null || goals.Length == 0) return;
-            if (!agent.pathPending && agent.remainingDistance <= arriveThreshold)
+            if (!agent.pathPending && agent.remainingDistance <= randomArriveThreshold)
             {
-                currentIndex = (currentIndex + 1) % goals.Length;
-                agent.destination = goals[currentIndex].position;
+                // Pick a new random destination within radius
+                Vector2 randCircle = Random.insideUnitCircle * randomMoveRadius;
+                Vector3 randPos = transform.position + new Vector3(randCircle.x, 0, randCircle.y);
+
+                NavMeshHit hit;
+                if (NavMesh.SamplePosition(randPos, out hit, randomMoveRadius, NavMesh.AllAreas))
+                {
+                    randomDestination = hit.position;
+                    agent.destination = randomDestination;
+                }
+            }
+        }
+        else
+        {
+            // --- Existing patrol/chase logic ---
+            if (player != null && Vector3.Distance(transform.position, player.position) < detectRadius)
+            {
+                chasingPlayer = true;
+            }
+            else
+            {
+                chasingPlayer = false;
+            }
+
+            if (chasingPlayer && player != null)
+            {
+                agent.destination = player.position;
+            }
+            else
+            {
+                if (goals == null || goals.Length == 0) return;
+                if (!agent.pathPending && agent.remainingDistance <= arriveThreshold)
+                {
+                    currentIndex = (currentIndex + 1) % goals.Length;
+                    agent.destination = goals[currentIndex].position;
+                }
             }
         }
 
@@ -61,5 +86,10 @@ public class MoveTo : MonoBehaviour
 
             animator.SetBool("Grounded", true); 
         }
+    }
+
+    public void SetPlayer(Transform playerTransform)
+    {
+        player = playerTransform;
     }
 }

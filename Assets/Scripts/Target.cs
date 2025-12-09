@@ -122,8 +122,17 @@ public class Target : MonoBehaviour
         transform.position = to;
     }
 
+
+    [Header("UI")]
+    public bool showCrosshair = true;
+    public GameObject crosshairUI;
+
     void Update()
     {
+        // Show crosshair only when game is active
+        if (crosshairUI != null)
+            crosshairUI.SetActive(GameIsActive()); // Replace GameIsActive() with your actual game state check
+
         if (projectilePrefab == null || muzzle == null) return;
 
         bool fire = false;
@@ -134,7 +143,15 @@ public class Target : MonoBehaviour
             try { fire = UnityEngine.Input.GetMouseButtonDown(0); } catch { fire = false; }
         }
 
-        if (fire && Time.time - lastFireTime >= fireCooldown)
+        bool holding = false;
+        if (Mouse.current != null)
+            holding = Mouse.current.leftButton.isPressed;
+        else
+        {
+            try { holding = UnityEngine.Input.GetMouseButton(0); } catch { holding = false; }
+        }
+
+        if (holding && Time.time - lastFireTime >= 0.01f) 
         {
             FireProjectile();
             lastFireTime = Time.time;
@@ -198,5 +215,10 @@ public class Target : MonoBehaviour
                 if (col != null) Physics.IgnoreCollision(projCol, col, true);
             }
         }
+    }
+
+    bool GameIsActive()
+    {
+        return true;
     }
 }
