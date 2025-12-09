@@ -1,0 +1,81 @@
+using UnityEngine;
+
+[RequireComponent(typeof(Rigidbody))]
+public class Projectile : MonoBehaviour
+{
+    [Header("Damage")]
+    public int damage = 20;
+
+    [Header("Flight")]
+    public float speed = 25f;
+    public float lifetime = 5f;
+    public bool useGravity = false;
+
+    [Header("Collision / Effects")]
+    public LayerMask hitLayers = ~0; 
+    public GameObject impactPrefab; 
+
+    [Header("Owner")]
+    public Transform owner; 
+
+    Rigidbody rb;
+    bool hasHit = false;
+
+    void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+        if (rb == null) rb = gameObject.AddComponent<Rigidbody>();
+
+        rb.useGravity = useGravity;
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        rb.isKinematic = false;
+
+        rb.linearVelocity = transform.forward * speed;
+        Destroy(gameObject, lifetime);
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (hasHit) return;
+        HandleHit(collision.collider, collision.contacts.Length > 0 ? collision.contacts[0].point : transform.position);
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (hasHit) return;
+        HandleHit(other, other.ClosestPoint(transform.position));
+    }
+
+    void HandleHit(Collider col, Vector3 hitPoint)
+    {
+        if (owner != null && col.transform.root == owner.root) return;
+
+        if (((1 << col.gameObject.layer) & hitLayers) == 0) return;
+        var health = col.GetComponentInParent<Health>();
+        if (health != null)
+        {
+            health.TakeDamage(damage);
+
+            bool playerOwned = (owner != null && owner.root.CompareTag("Player"));
+            if (playerOwned)
+            {
+                var menu = Object.FindObjectOfType<Menu>();
+                if (menu != null) menu.AddScore(1);
+            }
+        }
+
+        if (impactPrefab != null)
+        {
+            Instantiate(impactPrefab, hitPoint, Quaternion.identity);
+        }
+
+        hasHit = true;
+        Destroy(gameObject);
+    }
+    
+    public void Launch(Vector3 velocity)
+    {
+        if (rb == null) rb = GetComponent<Rigidbody>();
+        rb.linearVelocity = velocity;
+    }
+}
