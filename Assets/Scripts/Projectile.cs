@@ -59,13 +59,13 @@ public class Projectile : MonoBehaviour
         var health = col.GetComponentInParent<Health>();
         if (health != null)
         {
-            health.TakeDamage(damage);
+            health.TakeDamage(damage, owner != null ? owner.root.gameObject : null);
 
             bool playerOwned = (owner != null && owner.root.CompareTag("Player"));
             if (playerOwned)
             {
                 var menu = Object.FindObjectOfType<Menu>();
-                if (menu != null) menu.AddScore(1);
+                // if (menu != null) menu.AddScore(1);
             }
         }
 

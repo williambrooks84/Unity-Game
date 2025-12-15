@@ -7,53 +7,124 @@ public class Menu : MonoBehaviour
     [Header("UI Buttons")]
     public GameObject playAgainButton; // assign your Play Again button here (optional)
 
-    // Call this from your Play Again button's OnClick event
-    public void OnPlayAgainClicked()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
+    // public TMP_Text score; 
+    // public int scoreValue = 0;
 
-    public TMP_Text score; 
-    public int scoreValue = 0;
+    [Header("Kill Counter")]
+    public TMP_Text killCountText;            // shows "Kills: count"
+    public static int killCount = 0;          // static so Health can access it
 
     [Header("Player Health UI")]
     public TMP_Text playerHealthText;         // shows "HP: current/max"
     public TMP_Text wastedText;               // assign a TMP text for "Wasted" message
     public Health playerHealthRef;            // assign your Player's Health here (or leave null and tag Player)
 
+    [Header("Victory UI")]
+    public TMP_Text victoryText;              // assign a TMP text for "Victory" message
+
+    // References for disabling aiming/crosshair
+    private PlayerMovementMouse playerMovement;
+    private FirstPersonView firstPersonView;
+    private GameObject crosshairUI;
+
     // cached subscription flag
     bool _subscribedToPlayerHealth = false;
 
     void Start()
     {
-        UpdateScoreText();
+        // UpdateScoreText();
+        UpdateKillCountText();
         TryBindPlayerHealth();
         UpdatePlayerHealthUIImmediate();
         if (wastedText != null) wastedText.gameObject.SetActive(false);
+        if (victoryText != null) {
+            victoryText.text = "";
+            victoryText.gameObject.SetActive(false);
+        }
         if (playAgainButton != null) playAgainButton.SetActive(false);
+
+        // Cache references for disabling on victory
+        var playerGO = SafeFindPlayer();
+        if (playerGO != null)
+        {
+            playerMovement = playerGO.GetComponent<PlayerMovementMouse>();
+            firstPersonView = FindObjectOfType<FirstPersonView>();
+            var health = playerGO.GetComponent<Health>();
+            if (health != null)
+                crosshairUI = health.crosshairUI;
+        }
     }
+    // Call this from ControlPointManager when all points are captured
+    public void ShowVictoryScreen()
+    {
+        // Show system cursor for UI interaction
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        if (victoryText != null)
+        {
+            victoryText.text = "Victory!";
+            victoryText.gameObject.SetActive(true);
+        }
+        if (playAgainButton != null)
+            playAgainButton.SetActive(true);
+
+        // Disable aiming and crosshair
+        if (playerMovement != null)
+            playerMovement.enabled = false;
+        if (firstPersonView != null)
+            firstPersonView.enabled = false;
+    }
+
 
     void OnDisable()
     {
         UnsubscribePlayerHealth();
     }
 
-    public void SetScore(int value)
+    public void OnPlayAgainClicked()
     {
-        scoreValue = value;
-        UpdateScoreText();
+        // Reset kill counter for new session
+        killCount = 0;
+        // Hide system cursor and lock for gameplay
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        // Re-enable aiming and crosshair before reload
+        if (playerMovement != null)
+            playerMovement.enabled = true;
+        if (firstPersonView != null)
+            firstPersonView.enabled = true;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    public void AddScore(int amount)
+    // public void SetScore(int value)
+    // {
+    //     scoreValue = value;
+    //     UpdateScoreText();
+    // }
+
+    // public void AddScore(int amount)
+    // {
+    //     scoreValue += amount;
+    //     UpdateScoreText();
+    // }
+
+    // void UpdateScoreText()
+    // {
+    //     if (score != null)
+    //         score.text = "Score: " + scoreValue;
+    // }
+
+    void UpdateKillCountText()
     {
-        scoreValue += amount;
-        UpdateScoreText();
+        if (killCountText != null)
+            killCountText.text = "Kills: " + killCount;
     }
 
-    void UpdateScoreText()
+    public static void AddKill()
     {
-        if (score != null)
-            score.text = "Score: " + scoreValue;
+        killCount++;
+        var menu = FindObjectOfType<Menu>();
+        if (menu != null) menu.UpdateKillCountText();
     }
 
     // --- Player Health binding & updates ---
@@ -96,6 +167,13 @@ public class Menu : MonoBehaviour
         if (playAgainButton != null)
         {
             playAgainButton.SetActive(isDead);
+        }
+
+        // Show cursor when dead (game over)
+        if (isDead)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
     }
 

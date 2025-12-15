@@ -13,6 +13,9 @@ public class Health : MonoBehaviour
     public int maxHealth = 100;
     public int currentHealth = 100;
 
+    // Track who dealt damage for kill counting
+    private GameObject lastDamageSource = null;
+
     [Header("Events (optional)")]
     public HealthChangedEvent onHealthChanged;
     public IntEvent onDamaged;
@@ -33,10 +36,11 @@ public class Health : MonoBehaviour
 
     public bool IsDead => currentHealth <= 0;
 
-    public void TakeDamage(int amount)
+    public void TakeDamage(int amount, GameObject damageSource = null)
     {
         if (amount <= 0 || IsDead) return;
 
+        lastDamageSource = damageSource;
         currentHealth = Mathf.Max(0, currentHealth - amount);
 
         onDamaged?.Invoke(amount);
@@ -65,6 +69,12 @@ public class Health : MonoBehaviour
 
         if (crosshairUI != null)
             crosshairUI.SetActive(false);
+
+        // Only count kill if NPC was killed by player projectile
+        if (!gameObject.CompareTag("Player") && lastDamageSource != null && lastDamageSource.CompareTag("Player"))
+        {
+            Menu.AddKill();
+        }
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;

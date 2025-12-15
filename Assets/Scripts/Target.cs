@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class Target : MonoBehaviour
 {
@@ -30,6 +31,19 @@ public class Target : MonoBehaviour
     {
         health = GetComponent<Health>(); 
         rb = GetComponent<Rigidbody>();
+    }
+
+    void Start()
+    {
+        // Ensure crosshair UI is visible at game start
+        if (crosshairComponent != null)
+        {
+            var canvasGroup = crosshairComponent.GetComponent<CanvasGroup>();
+            if (canvasGroup != null)
+                canvasGroup.alpha = 1f;
+            crosshairComponent.raycastTarget = true;
+            crosshairComponent.gameObject.SetActive(true);
+        }
     }
 
     void OnEnable()
@@ -123,15 +137,20 @@ public class Target : MonoBehaviour
     }
 
 
-    [Header("UI")]
-    public bool showCrosshair = true;
-    public GameObject crosshairUI;
+    [Header("Assign your Crosshair UI RawImage here")]
+    public RawImage crosshairComponent;
 
     void Update()
     {
-        // Show crosshair only when game is active
-        if (crosshairUI != null)
-            crosshairUI.SetActive(GameIsActive()); // Replace GameIsActive() with your actual game state check
+        // Control the crosshair UI visibility based on game state
+        bool show = GameIsActive();
+        if (crosshairComponent != null)
+        {
+            var canvasGroup = crosshairComponent.GetComponent<CanvasGroup>();
+            if (canvasGroup != null)
+                canvasGroup.alpha = show ? 1f : 0f;
+            crosshairComponent.raycastTarget = show;
+        }
 
         if (projectilePrefab == null || muzzle == null) return;
 
@@ -219,6 +238,15 @@ public class Target : MonoBehaviour
 
     bool GameIsActive()
     {
+        // Hide crosshair if the victory or wasted screen is active
+        var menu = FindObjectOfType<Menu>();
+        if (menu != null)
+        {
+            if (menu.victoryText != null && menu.victoryText.gameObject.activeInHierarchy)
+                return false;
+            if (menu.wastedText != null && menu.wastedText.gameObject.activeInHierarchy)
+                return false;
+        }
         return true;
     }
 }

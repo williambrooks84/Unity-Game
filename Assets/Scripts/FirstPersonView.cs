@@ -52,9 +52,29 @@ public class FirstPersonView : MonoBehaviour
         Cursor.visible = true;
     }
 
+    public void LockCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
     void LateUpdate()
     {
         if (target == null) return;
+        
+        // Ensure cursor stays locked during gameplay
+        if (Cursor.lockState != CursorLockMode.Locked && Cursor.visible)
+        {
+            // Only unlock if an end-game screen is active, otherwise keep locked
+            var menu = FindObjectOfType<Menu>();
+            bool isGameOver = (menu != null && menu.wastedText != null && menu.wastedText.gameObject.activeInHierarchy) ||
+                              (menu != null && menu.victoryText != null && menu.victoryText.gameObject.activeInHierarchy);
+            if (!isGameOver)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+        }
 
         // Mouse look: supports both legacy Input axes and new Input System Mouse.delta when available
         if (enableMouseLook)

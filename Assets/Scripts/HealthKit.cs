@@ -5,15 +5,11 @@ using UnityEngine;
 public class HealthKit : MonoBehaviour
 {
     [Header("Heal Settings")]
-    [Tooltip("Amount of health restored (ignored if HealToFull is enabled)")]
     public int healAmount = 25;
-    [Tooltip("If true, this kit will restore the player's health to full instead of adding an amount")]
     public bool healToFull = false;
 
     [Header("Pickup Behavior")]
-    [Tooltip("If true the kit is consumed on pickup and will be destroyed/disabled")]
     public bool oneTimeUse = true;
-    [Tooltip("If oneTimeUse is true the kit will reappear after this many seconds")]
     public float respawnTime = 20f; 
 
     [Header("Optional Effects")]
@@ -23,6 +19,13 @@ public class HealthKit : MonoBehaviour
     Collider _collider;
     Renderer[] _renderers;
     AudioSource _audio;
+
+    [Header("Visuals")]
+    public bool spin = true;
+    public Vector3 spinAxis = Vector3.up;
+    public bool spinInWorldSpace = true;
+    public bool spinAroundCenter = true;
+    public float spinSpeed = 45f;
 
     void Awake()
     {
@@ -48,6 +51,49 @@ public class HealthKit : MonoBehaviour
         TryPickup(collision.gameObject);
     }
 
+    void Update()
+    {
+        if (!spin) return;
+        if (_renderers == null || _renderers.Length == 0) return;
+        bool visible = false;
+        for (int i = 0; i < _renderers.Length; i++)
+        {
+            var r = _renderers[i];
+            if (r != null && r.enabled)
+            {
+                visible = true;
+                break;
+            }
+        }
+        if (visible)
+        {
+            float angle = spinSpeed * Time.deltaTime;
+            Vector3 axisWorld = spinInWorldSpace ? Vector3.up : transform.TransformDirection(spinAxis.normalized);
+
+            if (spinAroundCenter && _renderers != null && _renderers.Length > 0)
+            {
+                Bounds b = _renderers[0].bounds;
+                for (int i = 1; i < _renderers.Length; i++) if (_renderers[i] != null) b.Encapsulate(_renderers[i].bounds);
+                Vector3 center = b.center;
+
+                for (int i = 0; i < _renderers.Length; i++)
+                {
+                    var r = _renderers[i];
+                    if (r == null) continue;
+
+                    r.transform.RotateAround(center, axisWorld, angle);
+                }
+            }
+            else
+            {
+                if (spinInWorldSpace)
+                    transform.Rotate(Vector3.up * angle, Space.World);
+                else
+                    transform.Rotate(spinAxis.normalized * angle, Space.Self);
+            }
+        }
+    }
+
     void TryPickup(GameObject otherObj)
     {
         if (otherObj == null) return;
@@ -60,6 +106,21 @@ public class HealthKit : MonoBehaviour
         {
             return;
         }
+
+        bool isPlayer = false;
+        Transform check = health.transform;
+        while (check != null)
+        {
+            if (check.gameObject.CompareTag("Player"))
+            {
+                isPlayer = true;
+                break;
+            }
+            if (check.parent == null) break;
+            check = check.parent;
+        }
+
+        if (!isPlayer) return;
 
         if (health.IsDead)
         {

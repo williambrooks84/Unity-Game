@@ -16,6 +16,8 @@ public class ControlPoint : MonoBehaviour
     private bool playerInside = false;
     private bool captured = false;
 
+    public bool IsCaptured() { return captured; }
+
     void Start()
     {
         ringRenderer.material = redMaterial;
