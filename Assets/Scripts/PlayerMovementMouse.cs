@@ -7,7 +7,7 @@ public class PlayerMovementMouse : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 5f;
-    public float turnSpeed = 720f; // degrees per second
+    public float turnSpeed = 720f; 
 
     [Header("Jump")]
     public float jumpForce = 6f;
@@ -16,7 +16,7 @@ public class PlayerMovementMouse : MonoBehaviour
     public LayerMask groundMask;
     public float groundCheckRadius = 0.15f;
     public Vector3 groundCheckOffset = new Vector3(0, -0.9f, 0);
-    public float groundedRayDistance = 0.2f; // extra raycast distance below feet
+    public float groundedRayDistance = 0.2f;
 
     private Rigidbody rb;
     private Animator animator;
@@ -29,19 +29,22 @@ public class PlayerMovementMouse : MonoBehaviour
 
     private float moveInput;
     private float strafeInput;
-    private bool zKeyPressed; // camera-forward movement flag
+    private bool zKeyPressed; 
 
     private Vector3 mouseWorldPos;
 
     [Header("Shooting")]
-    public Transform muzzle;                  // where projectiles spawn
-    public GameObject projectilePrefab;       // assign your projectile prefab
-    public float fireCooldown = 0.15f;        // time between shots
+    public Transform muzzle; 
+    public GameObject projectilePrefab;
+    public float fireCooldown = 0.15f; 
     private float _lastFireTime;
     private bool _firePressed;
 
     [Header("Audio")]
-    public AudioClip shotSound;               // player shot sound
+    public AudioClip shotSound;  
+    
+    [Range(0f, 1f)]
+    public float shotVolume = 0.5f;
 
     void Start()
     {
@@ -55,7 +58,6 @@ public class PlayerMovementMouse : MonoBehaviour
             _hashIsJumping = Animator.StringToHash("IsJumping");
         }
         
-        // Initialize fire time to prevent accidental shot at start
         _lastFireTime = Time.time;
     }
 
@@ -71,20 +73,17 @@ public class PlayerMovementMouse : MonoBehaviour
 
     void Update()
     {
-        // --- Input ---
         moveInput = 0f;
         strafeInput = 0f;
         zKeyPressed = false;
 
         if (Keyboard.current != null)
         {
-            // WASD / Arrow keys
             if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) moveInput += 1f;
             if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) moveInput -= 1f;
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) strafeInput -= 1f;
             if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) strafeInput += 1f;
             
-            // Z key: walk toward camera forward (overrides other movement)
             if (Keyboard.current.zKey.isPressed)
             {
                 zKeyPressed = true;
@@ -92,21 +91,17 @@ public class PlayerMovementMouse : MonoBehaviour
                 strafeInput = 0f;
             }
 
-            // Jump input (check space even if not grounded yet, will apply in FixedUpdate)
             if (Keyboard.current.spaceKey.wasPressedThisFrame)
                 jumpPressed = true;
         }
 
-        // --- Fire input ---
         _firePressed = false;
         if (UnityEngine.InputSystem.Mouse.current != null)
         {
-            // isPressed allows holding the button down (not just one frame)
             _firePressed = UnityEngine.InputSystem.Mouse.current.leftButton.isPressed;
         }
 
-        // --- Mouse aiming ---
-        mouseWorldPos = transform.position + transform.forward * 10f; // fallback
+        mouseWorldPos = transform.position + transform.forward * 10f; 
         if (Mouse.current != null)
         {
             Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
@@ -117,25 +112,20 @@ public class PlayerMovementMouse : MonoBehaviour
             }
             else
             {
-                // Fallback: aim far away in the mouse direction (e.g. 50 units)
                 mouseWorldPos = ray.GetPoint(50f);
             }
         }
 
-        // Animator updates moved to FixedUpdate to reflect physics-grounded state
     }
 
     void FixedUpdate()
     {
-        // --- Ground check ---
         isGrounded = CheckGrounded();
 
-        // --- Movement: always relative to camera direction ---
         Vector3 moveDir = Vector3.zero;
         
         if (Camera.main != null)
         {
-            // Get camera forward and right on horizontal plane
             Vector3 camForward = Camera.main.transform.forward;
             Vector3 camRight = Camera.main.transform.right;
             camForward.y = 0f;
@@ -143,16 +133,11 @@ public class PlayerMovementMouse : MonoBehaviour
             camForward.Normalize();
             camRight.Normalize();
             
-            // Movement relative to camera direction (W goes camera-forward, A/D strafe camera-relative)
             moveDir = (camForward * moveInput + camRight * strafeInput).normalized;
         }
         
         rb.MovePosition(rb.position + moveDir * moveSpeed * Time.fixedDeltaTime);
 
-        // --- Rotation handled by FirstPersonView when rotatePlayerWithMouse = true ---
-        // (Player yaw automatically follows camera horizontal look)
-
-        // --- Animator updates (reflect physics state) ---
         if (animator != null)
         {
             float speed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
@@ -160,30 +145,27 @@ public class PlayerMovementMouse : MonoBehaviour
             animator.SetBool(_hashGrounded, isGrounded);
         }
 
-        // --- Jump ---
         if (jumpPressed && isGrounded)
         {
-            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z); // reset vertical velocity
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             jumpPressed = false;
             if (animator != null && AnimatorHasParameter(animator, _hashIsJumping)) animator.SetBool(_hashIsJumping, true);
         }
 
-        // --- Ground stick (optional) ---
         if (isGrounded && rb.linearVelocity.y < 0f)
         {
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, -2f, rb.linearVelocity.z);
             if (animator != null && AnimatorHasParameter(animator, _hashIsJumping)) animator.SetBool(_hashIsJumping, false);
         }
 
-        // --- Shooting ---
         if (_firePressed && projectilePrefab != null && muzzle != null)
         {
             if (Time.time - _lastFireTime >= fireCooldown)
             {
                 Vector3 dir = (mouseWorldPos - muzzle.position);
                 if (dir.sqrMagnitude < 0.0001f) dir = transform.forward;
-                dir.y = 0f; // keep level if you prefer horizontal shots
+                dir.y = 0f;
                 dir.Normalize();
 
                 var go = Instantiate(projectilePrefab, muzzle.position, Quaternion.LookRotation(dir));
@@ -199,7 +181,6 @@ public class PlayerMovementMouse : MonoBehaviour
                     if (rbp != null) rbp.linearVelocity = dir * 25f;
                 }
 
-                // prevent self-collision
                 var projCol = go.GetComponent<Collider>();
                 if (projCol != null)
                 {
@@ -209,16 +190,15 @@ public class PlayerMovementMouse : MonoBehaviour
                     }
                 }
 
-                // Play shot sound - create new AudioSource for each shot so they can overlap
                 if (shotSound != null && muzzle != null)
                 {
                     GameObject tempAudio = new GameObject("PlayerShot");
                     tempAudio.transform.position = muzzle.position;
                     AudioSource audioSrc = tempAudio.AddComponent<AudioSource>();
                     audioSrc.clip = shotSound;
-                    audioSrc.volume = 0.8f;
+                    audioSrc.volume = shotVolume;
                     audioSrc.pitch = Random.Range(0.9f, 1.1f);
-                    audioSrc.spatialBlend = 1f; // 3D audio
+                    audioSrc.spatialBlend = 1f;
                     audioSrc.rolloffMode = AudioRolloffMode.Linear;
                     audioSrc.minDistance = 1f;
                     audioSrc.maxDistance = 30f;
@@ -233,7 +213,6 @@ public class PlayerMovementMouse : MonoBehaviour
 
     private bool CheckGrounded()
     {
-        // 1) OverlapSphere near feet
         Vector3 spherePosition = transform.position + groundCheckOffset;
         Collider[] hits = Physics.OverlapSphere(spherePosition, groundCheckRadius, groundMask, QueryTriggerInteraction.Ignore);
         for (int i = 0; i < hits.Length; i++)
@@ -244,7 +223,6 @@ public class PlayerMovementMouse : MonoBehaviour
             return true;
         }
 
-        // 2) Capsule-based spherecast straight down from feet for robustness
         var cap = GetComponent<CapsuleCollider>();
         if (cap != null)
         {
@@ -256,7 +234,6 @@ public class PlayerMovementMouse : MonoBehaviour
                 return true;
         }
 
-        // 3) Simple raycast down a short distance
         Vector3 rayOrigin = transform.position + Vector3.up * 0.1f;
         if (Physics.Raycast(rayOrigin, Vector3.down, 0.25f, groundMask, QueryTriggerInteraction.Ignore))
             return true;

@@ -10,7 +10,7 @@ public class ShotSoundEffect : MonoBehaviour
     public AudioClip shotSound;
     
     [Range(0f, 1f)]
-    public float volume = 0.8f;
+    public float volume = 0.5f;
     
     [Range(0.5f, 2f)]
     public float pitchVariation = 0.1f; // adds slight pitch variation to each shot
