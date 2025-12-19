@@ -7,6 +7,9 @@ public class NPCSpawner : MonoBehaviour
     public int npcCount = 10;
     public Renderer groundRenderer;
 
+    [Header("NPC Audio")]
+    public AudioClip npcAudioClip;
+
     void Start()
     {
         GameObject grassParent = GameObject.Find("Grass");
@@ -32,6 +35,24 @@ public class NPCSpawner : MonoBehaviour
                 var shooter = npc.GetComponent<NPCShooter>();
                 if (shooter != null && player != null)
                     shooter.SetPlayer(player);
+
+                // Add audio component if audio clip is assigned
+                if (npcAudioClip != null)
+                {
+                    var audioSource = npc.GetComponent<AudioSource>();
+                    if (audioSource == null)
+                        audioSource = npc.AddComponent<AudioSource>();
+
+                    var npcAudio = npc.GetComponent<NPCAudio>();
+                    if (npcAudio == null)
+                        npcAudio = npc.AddComponent<NPCAudio>();
+
+                    npcAudio.audioClip = npcAudioClip;
+                    if (player != null)
+                        npcAudio.SetPlayer(player);
+                    
+                    Debug.Log($"Added audio to NPC at position: {npc.transform.position}");
+                }
             }
         }
     }

@@ -37,8 +37,11 @@ public class PlayerMovementMouse : MonoBehaviour
     public Transform muzzle;                  // where projectiles spawn
     public GameObject projectilePrefab;       // assign your projectile prefab
     public float fireCooldown = 0.15f;        // time between shots
-    private float _lastFireTime = -999f;
+    private float _lastFireTime;
     private bool _firePressed;
+
+    [Header("Audio")]
+    public AudioClip shotSound;               // player shot sound
 
     void Start()
     {
@@ -51,6 +54,9 @@ public class PlayerMovementMouse : MonoBehaviour
             _hashSpeed = Animator.StringToHash("Speed");
             _hashIsJumping = Animator.StringToHash("IsJumping");
         }
+        
+        // Initialize fire time to prevent accidental shot at start
+        _lastFireTime = Time.time;
     }
 
     private bool AnimatorHasParameter(Animator anim, int paramHash)
@@ -95,7 +101,8 @@ public class PlayerMovementMouse : MonoBehaviour
         _firePressed = false;
         if (UnityEngine.InputSystem.Mouse.current != null)
         {
-            _firePressed = UnityEngine.InputSystem.Mouse.current.leftButton.wasPressedThisFrame;
+            // isPressed allows holding the button down (not just one frame)
+            _firePressed = UnityEngine.InputSystem.Mouse.current.leftButton.isPressed;
         }
 
         // --- Mouse aiming ---
@@ -200,6 +207,23 @@ public class PlayerMovementMouse : MonoBehaviour
                     {
                         if (col != null) Physics.IgnoreCollision(projCol, col, true);
                     }
+                }
+
+                // Play shot sound - create new AudioSource for each shot so they can overlap
+                if (shotSound != null && muzzle != null)
+                {
+                    GameObject tempAudio = new GameObject("PlayerShot");
+                    tempAudio.transform.position = muzzle.position;
+                    AudioSource audioSrc = tempAudio.AddComponent<AudioSource>();
+                    audioSrc.clip = shotSound;
+                    audioSrc.volume = 0.8f;
+                    audioSrc.pitch = Random.Range(0.9f, 1.1f);
+                    audioSrc.spatialBlend = 1f; // 3D audio
+                    audioSrc.rolloffMode = AudioRolloffMode.Linear;
+                    audioSrc.minDistance = 1f;
+                    audioSrc.maxDistance = 30f;
+                    audioSrc.Play();
+                    Destroy(tempAudio, shotSound.length);
                 }
 
                 _lastFireTime = Time.time;

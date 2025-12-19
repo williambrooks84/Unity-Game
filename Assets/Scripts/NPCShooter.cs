@@ -9,6 +9,9 @@ public class NPCShooter : MonoBehaviour
     public float fireCooldown = 1f;
     public float projectileSpeed = 20f;
 
+    [Header("Audio")]
+    public AudioClip shotSound;
+
     float lastFireTime = -999f;
 
     void Update()
@@ -49,6 +52,12 @@ public class NPCShooter : MonoBehaviour
         {
             var rb = go.GetComponent<Rigidbody>();
             if (rb != null) rb.linearVelocity = dir * projectileSpeed;
+        }
+
+        // Play shot sound
+        if (shotSound != null)
+        {
+            ShotSoundEffect.PlayShotAtPosition(muzzle.position, shotSound);
         }
     }
 

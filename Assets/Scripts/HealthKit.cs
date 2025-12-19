@@ -14,6 +14,8 @@ public class HealthKit : MonoBehaviour
 
     [Header("Optional Effects")]
     public ParticleSystem pickupEffect;
+    
+    [Tooltip("Leave empty to use default Health.wav sound")]
     public AudioClip pickupSound;
 
     Collider _collider;
@@ -32,11 +34,13 @@ public class HealthKit : MonoBehaviour
         _collider = GetComponent<Collider>();
         if (_collider != null) _collider.isTrigger = true;
         _renderers = GetComponentsInChildren<Renderer>(true);
+        
         _audio = GetComponent<AudioSource>();
-        if (_audio == null && pickupSound != null)
+        if (_audio == null)
         {
             _audio = gameObject.AddComponent<AudioSource>();
             _audio.playOnAwake = false;
+            _audio.spatialBlend = 1f; // 3D audio
         }
     }
 

@@ -13,6 +13,9 @@ public class Health : MonoBehaviour
     public int maxHealth = 100;
     public int currentHealth = 100;
 
+    [Header("Audio")]
+    public AudioClip deathSound;
+
     // Track who dealt damage for kill counting
     private GameObject lastDamageSource = null;
 
@@ -65,6 +68,22 @@ public class Health : MonoBehaviour
 
     void Die()
     {
+        // Play death sound
+        if (deathSound != null)
+        {
+            GameObject tempAudio = new GameObject("DeathSound");
+            tempAudio.transform.position = transform.position;
+            AudioSource audioSrc = tempAudio.AddComponent<AudioSource>();
+            audioSrc.clip = deathSound;
+            audioSrc.volume = 1f;
+            audioSrc.spatialBlend = 1f; // 3D audio
+            audioSrc.rolloffMode = AudioRolloffMode.Linear;
+            audioSrc.minDistance = 1f;
+            audioSrc.maxDistance = 50f;
+            audioSrc.Play();
+            Destroy(tempAudio, deathSound.length);
+        }
+
         onDeath?.Invoke();
 
         if (crosshairUI != null)
