@@ -1,9 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// Plays a shot sound effect at a given position.
-/// Attach this to an empty GameObject or call it from anywhere.
-/// </summary>
 public class ShotSoundEffect : MonoBehaviour
 {
     [Header("Sound Settings")]
@@ -13,13 +9,12 @@ public class ShotSoundEffect : MonoBehaviour
     public float volume = 0.5f;
     
     [Range(0.5f, 2f)]
-    public float pitchVariation = 0.1f; // adds slight pitch variation to each shot
+    public float pitchVariation = 0.1f;
 
     private static ShotSoundEffect instance;
 
     void Awake()
     {
-        // Singleton pattern - keep one instance throughout the game
         if (instance == null)
         {
             instance = this;
@@ -49,29 +44,24 @@ public class ShotSoundEffect : MonoBehaviour
             return;
         }
 
-        // Create a temporary GameObject for the sound
         GameObject tempAudio = new GameObject("ShotSound");
         tempAudio.transform.position = position;
 
-        // Add AudioSource
         AudioSource audioSource = tempAudio.AddComponent<AudioSource>();
         audioSource.clip = clip != null ? clip : shotSound;
         audioSource.volume = volume;
-        audioSource.spatialBlend = 1f; // 3D audio at shot position
+        audioSource.spatialBlend = 1f;
         audioSource.rolloffMode = AudioRolloffMode.Linear;
         audioSource.minDistance = 1f;
         audioSource.maxDistance = 30f;
 
-        // Add slight pitch variation
         if (pitchVariation > 0)
         {
             audioSource.pitch = Random.Range(1f - pitchVariation, 1f + pitchVariation);
         }
 
-        // Play the sound
         audioSource.Play();
 
-        // Destroy after sound finishes
         Destroy(tempAudio, audioSource.clip.length);
     }
 }

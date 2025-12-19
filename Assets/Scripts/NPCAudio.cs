@@ -31,17 +31,15 @@ public class NPCAudio : MonoBehaviour
     {
         audioSource = GetComponent<AudioSource>();
         
-        // Configure audio source for 3D spatial audio
         audioSource.clip = audioClip;
         audioSource.loop = true;
         audioSource.playOnAwake = false;
-        audioSource.spatialBlend = 1f; // 3D sound - positioned in space
+        audioSource.spatialBlend = 1f;
         audioSource.rolloffMode = AudioRolloffMode.Linear;
         audioSource.minDistance = minDistance;
         audioSource.maxDistance = maxDistance;
         audioSource.volume = maxVolume;
     
-        // Auto-find player if not set
         if (player == null)
         {
             var playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -49,7 +47,6 @@ public class NPCAudio : MonoBehaviour
                 player = playerObj.transform;
         }
 
-        // Start playing
         if (audioClip != null)
         {
             audioSource.Play();
@@ -59,8 +56,6 @@ public class NPCAudio : MonoBehaviour
 
     void Update()
     {
-        // Unity's 3D audio system handles distance automatically with spatialBlend = 1
-        // No need to manually adjust volume anymore
     }
 
     public void SetPlayer(Transform playerTransform)

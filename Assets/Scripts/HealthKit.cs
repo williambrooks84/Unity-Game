@@ -40,7 +40,7 @@ public class HealthKit : MonoBehaviour
         {
             _audio = gameObject.AddComponent<AudioSource>();
             _audio.playOnAwake = false;
-            _audio.spatialBlend = 1f; // 3D audio
+            _audio.spatialBlend = 1f; 
         }
     }
 

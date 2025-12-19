@@ -6,42 +6,35 @@ using TMPro;
 public class Menu : MonoBehaviour
 {
     [Header("UI Buttons")]
-    public GameObject playAgainButton; // assign your Play Again button here (optional)
-
-    // public TMP_Text score; 
-    // public int scoreValue = 0;
+    public GameObject playAgainButton; 
 
     [Header("Kill Counter")]
-    public TMP_Text killCountText;            // shows "Kills: count"
-    public static int killCount = 0;          // static so Health can access it
+    public TMP_Text killCountText;   
+    public static int killCount = 0; 
 
     [Header("Player Health UI")]
-    public TMP_Text playerHealthText;         // shows "HP: current/max"
-    public TMP_Text wastedText;               // assign a TMP text for "Wasted" message
-    public Health playerHealthRef;            // assign your Player's Health here (or leave null and tag Player)
+    public TMP_Text playerHealthText; 
+    public TMP_Text wastedText;  
+    public Health playerHealthRef; 
 
     [Header("Victory UI")]
-    public TMP_Text victoryText;              // assign a TMP text for "Victory" message
+    public TMP_Text victoryText;              
 
     [Header("Welcome UI")]
-    public GameObject welcomeCanvas;          // assign the welcome panel/canvas here
-    public GameObject hudCanvas;              // assign the main HUD canvas (so we can hide it while welcome shows)
-    public Button welcomeStartButton;         // optional: drag the Start button here to auto-wire
+    public GameObject welcomeCanvas;         
+    public GameObject hudCanvas;
+    public Button welcomeStartButton;  
     [Tooltip("If true, clicking anywhere while the welcome UI is shown will start the game (fallback if the button doesn't register).")]
     public bool acceptClickAnywhereToStart = true;
-    // References for disabling aiming/crosshair
     private PlayerMovementMouse playerMovement;
     private FirstPersonView firstPersonView;
     private GameObject crosshairUI;
 
-    // cached subscription flag
     bool _subscribedToPlayerHealth = false;
-    // Prevent welcome UI from being shown multiple times across duplicated Menu instances
     static bool _welcomeDisplayed = false;
 
     void Awake()
     {
-        // Prevent duplicate Menu components from fighting each other.
         var others = FindObjectsOfType<Menu>();
         foreach (var m in others)
         {
@@ -57,7 +50,6 @@ public class Menu : MonoBehaviour
     void Start()
     {
         Debug.Log($"Menu.Start() on GameObject='{gameObject.name}' (id={gameObject.GetInstanceID()})");
-        // UpdateScoreText();
         UpdateKillCountText();
         TryBindPlayerHealth();
         UpdatePlayerHealthUIImmediate();
@@ -67,16 +59,14 @@ public class Menu : MonoBehaviour
             victoryText.gameObject.SetActive(false);
         }
         if (playAgainButton != null) playAgainButton.SetActive(false);
-        // Show welcome panel (if assigned) at game start
+
         ShowWelcome();
 
-        // auto-wire the welcome Start button if assigned
         if (welcomeStartButton != null)
         {
             welcomeStartButton.onClick.AddListener(StartGameFromWelcome);
         }
 
-        // if no Start button assigned, try to find one under the welcome canvas
         if (welcomeStartButton == null && welcomeCanvas != null)
         {
             var foundBtn = welcomeCanvas.GetComponentInChildren<Button>(true);
@@ -92,14 +82,12 @@ public class Menu : MonoBehaviour
             }
         }
 
-        // Ensure there's an EventSystem so UI can receive clicks
         if (FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
         {
             var esGO = new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
             Debug.Log("Menu: Created EventSystem for UI input.");
         }
 
-        // Ensure welcome canvas (if it has a CanvasGroup) will receive raycasts
         if (welcomeCanvas != null)
         {
             var cg = welcomeCanvas.GetComponent<UnityEngine.CanvasGroup>();
@@ -109,7 +97,6 @@ public class Menu : MonoBehaviour
                 cg.blocksRaycasts = true;
             }
         }
-        // Cache references for disabling on victory
         var playerGO = SafeFindPlayer();
         if (playerGO != null)
         {
@@ -120,10 +107,8 @@ public class Menu : MonoBehaviour
                 crosshairUI = health.crosshairUI;
         }
     }
-    // Call this from ControlPointManager when all points are captured
     public void ShowVictoryScreen()
     {
-        // Show system cursor for UI interaction
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         if (victoryText != null)
@@ -134,14 +119,12 @@ public class Menu : MonoBehaviour
         if (playAgainButton != null)
             playAgainButton.SetActive(true);
 
-        // Disable aiming and crosshair
         if (playerMovement != null)
             playerMovement.enabled = false;
         if (firstPersonView != null)
             firstPersonView.enabled = false;
     }
 
-    // Show the welcome UI and hide HUD; pause the game
     public void ShowWelcome()
     {
         if (_welcomeDisplayed)
@@ -160,10 +143,8 @@ public class Menu : MonoBehaviour
         Debug.Log("Menu: Showing welcome UI (cursor unlocked).");
     }
 
-    // Called by the Start button on the welcome UI
     public void StartGameFromWelcome()
     {
-        // mark welcome as displayed so other instances or later calls don't re-show it
         _welcomeDisplayed = true;
         Debug.Log($"Menu.StartGameFromWelcome() called on GameObject='{gameObject.name}' (id={gameObject.GetInstanceID()})");
         if (welcomeCanvas != null) welcomeCanvas.SetActive(false);
@@ -171,7 +152,6 @@ public class Menu : MonoBehaviour
         Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        // reset session state
         killCount = 0;
         UpdateKillCountText();
         if (playerMovement != null) playerMovement.enabled = true;
@@ -179,9 +159,6 @@ public class Menu : MonoBehaviour
         Debug.Log("Menu: Start button pressed — game started from welcome.");
     }
 
-    // Ensure the system cursor stays visible/unlocked while the welcome UI is active.
-    // Other scripts may re-lock/hide the cursor in Start/Update; run this in LateUpdate
-    // so the welcome screen reliably shows the cursor.
     void LateUpdate()
     {
         if (welcomeCanvas != null && welcomeCanvas.activeSelf)
@@ -191,11 +168,9 @@ public class Menu : MonoBehaviour
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
             }
-            // Fallback: accept any primary mouse click to start the game
             if (acceptClickAnywhereToStart)
             {
                 bool primaryClicked = false;
-                // Prefer the new Input System if available
                 try
                 {
                     var mouse = UnityEngine.InputSystem.Mouse.current;
@@ -225,36 +200,15 @@ public class Menu : MonoBehaviour
 
     public void OnPlayAgainClicked()
     {
-        // Reset kill counter for new session
         killCount = 0;
-        // Hide system cursor and lock for gameplay
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        // Re-enable aiming and crosshair before reload
         if (playerMovement != null)
             playerMovement.enabled = true;
         if (firstPersonView != null)
             firstPersonView.enabled = true;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
-
-    // public void SetScore(int value)
-    // {
-    //     scoreValue = value;
-    //     UpdateScoreText();
-    // }
-
-    // public void AddScore(int amount)
-    // {
-    //     scoreValue += amount;
-    //     UpdateScoreText();
-    // }
-
-    // void UpdateScoreText()
-    // {
-    //     if (score != null)
-    //         score.text = "Score: " + scoreValue;
-    // }
 
     void UpdateKillCountText()
     {
@@ -269,7 +223,6 @@ public class Menu : MonoBehaviour
         if (menu != null) menu.UpdateKillCountText();
     }
 
-    // --- Player Health binding & updates ---
     void TryBindPlayerHealth()
     {
         if (playerHealthRef == null)
@@ -311,7 +264,6 @@ public class Menu : MonoBehaviour
             playAgainButton.SetActive(isDead);
         }
 
-        // Show cursor when dead (game over)
         if (isDead)
         {
             Cursor.lockState = CursorLockMode.None;
@@ -327,7 +279,6 @@ public class Menu : MonoBehaviour
         }
         else
         {
-            // clear UI if not bound
             if (playerHealthText != null) playerHealthText.text = "";
         }
     }

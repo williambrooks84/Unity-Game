@@ -9,9 +9,9 @@ public class HealthUI : MonoBehaviour
     public Health playerHealth;
 
     [Header("UI Elements")]
-    public Image plusIcon;        // background plus sprite
-    public Image fillOverlay;     // overlay image whose alpha follows health (use same sprite as plus or a masked white sprite)
-    public TMP_Text valueText;    // centered number inside the plus
+    public Image plusIcon;  
+    public Image fillOverlay; 
+    public TMP_Text valueText; 
 
     Color _fillColor;
 
@@ -32,7 +32,6 @@ public class HealthUI : MonoBehaviour
         }
         else
         {
-            // initialize display to zero if no player found
             UpdateVisuals(0, 1);
         }
     }
@@ -54,9 +53,9 @@ public class HealthUI : MonoBehaviour
 
         if (fillOverlay != null)
         {
-            float t = (max > 0) ? Mathf.Clamp01(current / (float)max) : 0f; // 1 when full, 0 when empty
+            float t = (max > 0) ? Mathf.Clamp01(current / (float)max) : 0f; 
             Color c = _fillColor;
-            c.a = t; // alpha proportional to health
+            c.a = t; 
             fillOverlay.color = c;
         }
     }

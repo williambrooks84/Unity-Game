@@ -36,7 +36,6 @@ public class NPCSpawner : MonoBehaviour
                 if (shooter != null && player != null)
                     shooter.SetPlayer(player);
 
-                // Add audio component if audio clip is assigned
                 if (npcAudioClip != null)
                 {
                     var audioSource = npc.GetComponent<AudioSource>();

@@ -35,7 +35,6 @@ public class Target : MonoBehaviour
 
     void Start()
     {
-        // Ensure crosshair UI is visible at game start
         if (crosshairComponent != null)
         {
             var canvasGroup = crosshairComponent.GetComponent<CanvasGroup>();
@@ -142,7 +141,6 @@ public class Target : MonoBehaviour
 
     void Update()
     {
-        // Control the crosshair UI visibility based on game state
         bool show = GameIsActive();
         if (crosshairComponent != null)
         {
@@ -238,7 +236,6 @@ public class Target : MonoBehaviour
 
     bool GameIsActive()
     {
-        // Hide crosshair if the victory or wasted screen is active
         var menu = FindObjectOfType<Menu>();
         if (menu != null)
         {

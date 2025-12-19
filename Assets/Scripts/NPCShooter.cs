@@ -21,7 +21,6 @@ public class NPCShooter : MonoBehaviour
         float dist = Vector3.Distance(transform.position, player.position);
         if (dist <= detectRadius)
         {
-            // Face the player
             Vector3 lookDir = player.position - transform.position;
             lookDir.y = 0f;
             if (lookDir.sqrMagnitude > 0.001f)
@@ -54,7 +53,7 @@ public class NPCShooter : MonoBehaviour
             if (rb != null) rb.linearVelocity = dir * projectileSpeed;
         }
 
-        // Play shot sound
+
         if (shotSound != null)
         {
             ShotSoundEffect.PlayShotAtPosition(muzzle.position, shotSound);

@@ -8,8 +8,8 @@ public class ThirdPersonCamera : MonoBehaviour
     [Tooltip("Default offset from the target in local space (x,right ; y,up ; z,back)")]
     public Vector3 offset = new Vector3(0f, 1.8f, -4f);
 
-    public float followSmoothTime = 0.15f;    // position smoothing
-    public float rotationSmoothSpeed = 10f;   // rotation smoothing
+    public float followSmoothTime = 0.15f;
+    public float rotationSmoothSpeed = 10f;
 
     [Header("Optional mouse orbit (legacy Input). If you use the new Input System, wire controls instead)")]
     public bool enableMouseOrbit = true;
@@ -33,7 +33,6 @@ public class ThirdPersonCamera : MonoBehaviour
     {
         if (target == null) return;
 
-        // Optional mouse orbit (wrapped to avoid project error if Input is unavailable)
         if (enableMouseOrbit)
         {
             try
@@ -49,27 +48,15 @@ public class ThirdPersonCamera : MonoBehaviour
             }
             catch (System.Exception)
             {
-                // If legacy Input is disabled (new Input System active), swallowing the exception keeps the camera working as follow-only.
             }
         }
 
-        // Compute desired rotation (apply orbit relative to target)
-        //Quaternion targetRotation = Quaternion.Euler(pitch, yaw, 0f);
-        //Quaternion worldRotation = target.rotation * targetRotation;
-
-        // Desired position follows target + rotated offset
-        //Vector3 desiredPosition = target.position + worldRotation * offset;
-
-        // --- changed: keep vertical offset in world up, rotate only horizontally so camera stays above ---
         Quaternion yawOnly = Quaternion.Euler(0f, yaw + target.eulerAngles.y, 0f);
         Vector3 horizontalOffset = yawOnly * new Vector3(offset.x, 0f, offset.z);
         Vector3 desiredPosition = target.position + Vector3.up * offset.y + horizontalOffset;
-        // --- end change ---
         
-        // Smooth position
         transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref velocity, followSmoothTime);
         
-        // Smooth rotation to look at target (slightly above target center)
         Vector3 lookAtPos = target.position + Vector3.up * 1.25f;
         Quaternion lookRot = Quaternion.LookRotation(lookAtPos - transform.position, Vector3.up);
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRot, rotationSmoothSpeed * Time.deltaTime);

@@ -207,10 +207,8 @@ public class CarAI : MonoBehaviour
         if (wheelFL != null) wheelFL.Rotate(Vector3.right, angleDelta, Space.Self);
         if (wheelFR != null) wheelFR.Rotate(Vector3.right, angleDelta, Space.Self);
 
-        // steering angle for front wheels (visual only)
         if (wheelFL != null || wheelFR != null)
         {
-            // compute current steer angle between forward and velocity direction
             Vector3 velPlanar = Vector3.ProjectOnPlane(_rb.linearVelocity, Vector3.up);
             float steer = 0f;
             if (velPlanar.sqrMagnitude > 0.001f)
@@ -219,7 +217,6 @@ public class CarAI : MonoBehaviour
                 steer = Mathf.Clamp(steer, -maxSteerAngle, maxSteerAngle);
             }
 
-            // apply local Y rotation to front wheels
             if (wheelFL != null)
             {
                 var local = wheelFL.localEulerAngles;
@@ -235,7 +232,6 @@ public class CarAI : MonoBehaviour
         }
     }
 
-    // public helper to (re)collect waypoints at runtime
     public void RefreshWaypoints()
     {
         CollectWaypoints();
@@ -245,18 +241,16 @@ public class CarAI : MonoBehaviour
     bool StickToGround(out Vector3 groundNormal)
     {
         groundNormal = Vector3.up;
-        // Cast down (sphere) to find ground and clamp Y/vertical velocity.
         Vector3 origin = transform.position + Vector3.up * 1.0f;
         bool hitFound = Physics.SphereCast(origin, groundProbeRadius, Vector3.down, out RaycastHit hit, groundCheckDistance, groundLayers, QueryTriggerInteraction.Ignore);
         if (!hitFound)
         {
-            // fallback to raycast if sphere missed
             hitFound = Physics.Raycast(origin, Vector3.down, out hit, groundCheckDistance, groundLayers, QueryTriggerInteraction.Ignore);
         }
 
         if (hitFound)
         {
-            if (hit.rigidbody == _rb) return false; // ignore self
+            if (hit.rigidbody == _rb) return false; 
 
             groundNormal = hit.normal;
             float targetY = hit.point.y + groundOffset;
@@ -264,7 +258,6 @@ public class CarAI : MonoBehaviour
             pos.y = targetY;
             _rb.MovePosition(pos);
 
-            // kill any vertical velocity so it stays glued
             Vector3 v = _rb.linearVelocity;
             v.y = 0f;
             _rb.linearVelocity = v;

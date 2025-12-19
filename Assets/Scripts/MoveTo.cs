@@ -25,7 +25,7 @@ public class MoveTo : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
         if (animator == null)
-            animator = GetComponentInChildren<Animator>(); // get Animator from child if not on root
+            animator = GetComponentInChildren<Animator>();
         if (goals != null && goals.Length > 0)
         {
             agent.destination = goals[0].position;
@@ -38,7 +38,6 @@ public class MoveTo : MonoBehaviour
         {
             if (!agent.pathPending && agent.remainingDistance <= randomArriveThreshold)
             {
-                // Pick a new random destination within radius
                 Vector2 randCircle = Random.insideUnitCircle * randomMoveRadius;
                 Vector3 randPos = transform.position + new Vector3(randCircle.x, 0, randCircle.y);
 
@@ -52,7 +51,6 @@ public class MoveTo : MonoBehaviour
         }
         else
         {
-            // --- Existing patrol/chase logic ---
             if (player != null && Vector3.Distance(transform.position, player.position) < detectRadius)
             {
                 chasingPlayer = true;
@@ -77,7 +75,6 @@ public class MoveTo : MonoBehaviour
             }
         }
 
-        // --- Animation logic ---
         if (animator != null)
         {
             bool isWalking = agent.velocity.magnitude > 0.1f;

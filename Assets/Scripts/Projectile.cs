@@ -65,7 +65,6 @@ public class Projectile : MonoBehaviour
             if (playerOwned)
             {
                 var menu = Object.FindObjectOfType<Menu>();
-                // if (menu != null) menu.AddScore(1);
             }
         }
 

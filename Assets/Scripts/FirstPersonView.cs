@@ -1,7 +1,5 @@
 using UnityEngine;
 
-// First-person camera that follows a target at a head offset and rotates by mouse look.
-// Mirrors your third-person script: optional legacy Input, pitch clamp, smoothing.
 public class FirstPersonView : MonoBehaviour
 {
     [Tooltip("The character / object the camera follows (usually the player root)")]
@@ -11,8 +9,8 @@ public class FirstPersonView : MonoBehaviour
     public Vector3 offset = new Vector3(0f, 1.6f, 0f);
 
     [Header("Smoothing")]
-    public float followSmoothTime = 0.05f;   // position smoothing
-    public float rotationSmoothSpeed = 20f;  // rotation smoothing
+    public float followSmoothTime = 0.05f; 
+    public float rotationSmoothSpeed = 20f;  
 
     [Header("Mouse Look (legacy Input)")]
     public bool enableMouseLook = true;
@@ -22,7 +20,7 @@ public class FirstPersonView : MonoBehaviour
     public bool lockCursorOnStart = true;
 
     [Header("Player Rotation")]
-    public bool rotatePlayerWithMouse = true; // rotates target yaw when looking left/right horizontally
+    public bool rotatePlayerWithMouse = true; 
 
     Vector3 _vel;
     float _yaw;
@@ -32,7 +30,6 @@ public class FirstPersonView : MonoBehaviour
     {
         if (target == null) Debug.LogWarning("FirstPersonView: assign target in inspector.");
         var ang = transform.eulerAngles;
-        // Anchor initial yaw to target when rotating player with mouse to avoid snap
         if (rotatePlayerWithMouse && target != null)
             _yaw = target.eulerAngles.y;
         else
@@ -62,10 +59,8 @@ public class FirstPersonView : MonoBehaviour
     {
         if (target == null) return;
         
-        // Ensure cursor stays locked during gameplay
         if (Cursor.lockState != CursorLockMode.Locked && Cursor.visible)
         {
-            // Only unlock if an end-game screen is active, otherwise keep locked
             var menu = FindObjectOfType<Menu>();
             bool isGameOver = (menu != null && menu.wastedText != null && menu.wastedText.gameObject.activeInHierarchy) ||
                               (menu != null && menu.victoryText != null && menu.victoryText.gameObject.activeInHierarchy);
@@ -76,12 +71,10 @@ public class FirstPersonView : MonoBehaviour
             }
         }
 
-        // Mouse look: supports both legacy Input axes and new Input System Mouse.delta when available
         if (enableMouseLook)
         {
             float mx = 0f, my = 0f;
             bool gotDelta = false;
-            // New Input System read
             try
             {
                 if (UnityEngine.InputSystem.Mouse.current != null)
@@ -94,7 +87,6 @@ public class FirstPersonView : MonoBehaviour
             }
             catch {}
 
-            // Legacy Input fallback
             if (!gotDelta)
             {
                 try
@@ -108,14 +100,11 @@ public class FirstPersonView : MonoBehaviour
 
             if (gotDelta)
             {
-                // Compute deltas
                 float yawDelta = mx * lookSensitivity * Time.unscaledDeltaTime;
-                float pitchDelta = -my * lookSensitivity * Time.unscaledDeltaTime; // invert mouse Y for pitch
+                float pitchDelta = -my * lookSensitivity * Time.unscaledDeltaTime; 
 
-                // Apply pitch locally
                 _pitch = Mathf.Clamp(_pitch + pitchDelta, minPitch, maxPitch);
 
-                // If we should rotate the player with mouse, apply yaw to the target and anchor _yaw to target's world yaw.
                 if (rotatePlayerWithMouse && target != null)
                 {
                     target.Rotate(0f, yawDelta, 0f, Space.World);
@@ -123,31 +112,24 @@ public class FirstPersonView : MonoBehaviour
                 }
                 else
                 {
-                    // Camera-only yaw
                     _yaw += yawDelta;
                 }
             }
         }
-
-        // Desired rotation: use the computed yaw and pitch (yaw already anchored to target when appropriate)
         Quaternion desiredRot = Quaternion.Euler(_pitch, _yaw, 0f);
 
-        // Desired position: target + local offset (head)
         Vector3 desiredPos = target.TransformPoint(offset);
 
-        // Smooth position & rotation
         transform.position = Vector3.SmoothDamp(transform.position, desiredPos, ref _vel, followSmoothTime);
         transform.rotation = Quaternion.Slerp(transform.rotation, desiredRot, rotationSmoothSpeed * Time.deltaTime);
     }
 
-    // Optional helper to toggle cursor lock
     public void SetCursorLocked(bool locked)
     {
         Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !locked;
     }
 
-    // New Input System hook: call this from an Input Action (Vector2) for look
     public void ApplyLook(UnityEngine.Vector2 delta)
     {
         float mx = delta.x;

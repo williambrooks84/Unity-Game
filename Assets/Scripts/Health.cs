@@ -16,7 +16,6 @@ public class Health : MonoBehaviour
     [Header("Audio")]
     public AudioClip deathSound;
 
-    // Track who dealt damage for kill counting
     private GameObject lastDamageSource = null;
 
     [Header("Events (optional)")]
@@ -68,7 +67,6 @@ public class Health : MonoBehaviour
 
     void Die()
     {
-        // Play death sound
         if (deathSound != null)
         {
             GameObject tempAudio = new GameObject("DeathSound");
@@ -76,7 +74,7 @@ public class Health : MonoBehaviour
             AudioSource audioSrc = tempAudio.AddComponent<AudioSource>();
             audioSrc.clip = deathSound;
             audioSrc.volume = 1f;
-            audioSrc.spatialBlend = 1f; // 3D audio
+            audioSrc.spatialBlend = 1f; 
             audioSrc.rolloffMode = AudioRolloffMode.Linear;
             audioSrc.minDistance = 1f;
             audioSrc.maxDistance = 50f;
@@ -89,7 +87,6 @@ public class Health : MonoBehaviour
         if (crosshairUI != null)
             crosshairUI.SetActive(false);
 
-        // Only count kill if NPC was killed by player projectile
         if (!gameObject.CompareTag("Player") && lastDamageSource != null && lastDamageSource.CompareTag("Player"))
         {
             Menu.AddKill();

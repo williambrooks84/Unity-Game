@@ -52,18 +52,16 @@ public class CarEngineSound : MonoBehaviour
             return;
         }
         
-        // Configure audio source for 3D spatial audio
         audioSource.clip = engineClip;
         audioSource.loop = true;
         audioSource.playOnAwake = false;
-        audioSource.spatialBlend = 1f; // 3D sound - positioned in space
+        audioSource.spatialBlend = 1f; 
         audioSource.rolloffMode = AudioRolloffMode.Linear;
         audioSource.minDistance = minDistance;
         audioSource.maxDistance = maxDistance;
-        audioSource.volume = maxVolume; // Start at max volume, will be adjusted by distance
-        audioSource.dopplerLevel = 0f; // Disable doppler effect for cleaner sound
+        audioSource.volume = maxVolume; 
+        audioSource.dopplerLevel = 0f; 
         
-        // Auto-find player if not set
         if (player == null)
         {
             var playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -71,7 +69,6 @@ public class CarEngineSound : MonoBehaviour
                 player = playerObj.transform;
         }
 
-        // Start playing
         audioSource.Play();
         Debug.Log($"CarEngineSound: Started engine sound on {gameObject.name}");
     }
@@ -80,11 +77,10 @@ public class CarEngineSound : MonoBehaviour
     {
         if (audioSource == null) return;
 
-        // Vary pitch based on car speed
         if (carRigidbody != null && pitchSpeedFactor > 0)
         {
             float speed = carRigidbody.linearVelocity.magnitude;
-            float speedFactor = Mathf.Clamp01(speed / 15f); // normalize by typical max speed
+            float speedFactor = Mathf.Clamp01(speed / 15f); 
             audioSource.pitch = 1f + (speedFactor * pitchSpeedFactor);
         }
         else
@@ -92,7 +88,6 @@ public class CarEngineSound : MonoBehaviour
             audioSource.pitch = basePitch;
         }
 
-        // Ensure audio is playing
         if (!audioSource.isPlaying && engineClip != null)
         {
             audioSource.Play();
